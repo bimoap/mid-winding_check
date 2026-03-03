@@ -8,15 +8,28 @@ st.title("Pancake Coil Winding Calculator & QC")
 
 # --- SIDEBAR: GLOBAL SPECIFICATIONS ---
 st.sidebar.header("Coil Specifications")
-req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=100, step=1)
+req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=172, step=1)
 cooling_plate_od = st.sidebar.number_input("Cooling Plate OD (mm)", min_value=1.0, value=259.0, step=1.0)
-cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=120.0, step=1.0)
+cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=100.0, step=1.0)
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("Materials")
-nominal_cu = st.sidebar.number_input("Nominal Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
-mylar_thick = st.sidebar.number_input("Primary Mylar (mm)", min_value=0.001, value=0.0762, format="%.4f")
-mylar_thin = st.sidebar.number_input("Thin Mylar (mm)", min_value=0.001, value=0.0508, format="%.4f")
+st.sidebar.subheader("Materials (Imperial)")
+st.sidebar.caption("Enter values in 'thou'. The script will auto-convert to mm for radial build calculations.")
+
+# 1. Copper Input & Conversion
+nominal_cu_thou = st.sidebar.number_input("Nominal Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
+nominal_cu = nominal_cu_thou * 0.0254
+st.sidebar.caption(f"↳ Metric equivalent: **{nominal_cu:.4f} mm**")
+
+# 2. Primary Mylar Input & Conversion
+mylar_thick_thou = st.sidebar.number_input("Primary Mylar (thou)", min_value=0.1, value=3.0, format="%.1f")
+mylar_thick = mylar_thick_thou * 0.0254
+st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thick:.4f} mm**")
+
+# 3. Thin Mylar Input & Conversion
+mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, value=2.0, format="%.1f")
+mylar_thin = mylar_thin_thou * 0.0254
+st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thin:.4f} mm**")
 
 # --- GLOBAL GEOMETRY CALCULATIONS ---
 max_coil_od = cooling_plate_od - 0.5
