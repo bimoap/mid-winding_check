@@ -34,8 +34,8 @@ st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thin:.4f} mm**")
 # --- SIGNATURE BLOCK ---
 st.sidebar.markdown("---")
 st.sidebar.markdown("<div style='text-align: center; color: gray; padding-top: 20px;'>"
-                    "<strong>Operator Tool</strong><br>"
-                    "<em>Bimo Adhi Prastya</em><br>"
+                    "<em>App developed & maintained by:</em><br>"
+                    "<strong>Bimo Adhi Prastya</strong><br>"
                     "<span style='font-size: 0.8em;'>Coil Shop Technician</span>"
                     "</div>", unsafe_allow_html=True)
 
