@@ -1,5 +1,6 @@
 import streamlit as st
 import math
+import matplotlib.pyplot as plt
 
 # --- PAGE SETUP ---
 st.set_page_config(page_title="Pancake Coil Winding Tool", layout="wide")
@@ -19,8 +20,8 @@ mylar_thin = st.sidebar.number_input("Thin Mylar (mm)", min_value=0.001, value=0
 
 # --- GLOBAL GEOMETRY CALCULATIONS ---
 max_coil_od = cooling_plate_od - 0.5
-bobbin_od = cooling_plate_id + 0.5
-available_radial_build = (max_coil_od - bobbin_od) / 2.0
+former_od = cooling_plate_id + 0.5
+available_radial_build = (max_coil_od - former_od) / 2.0
 
 # --- TABS ---
 tab1, tab2 = st.tabs(["📋 Winding Planning", "🔍 Mid-Winding QC"])
@@ -33,13 +34,13 @@ with tab1:
     
     col1, col2, col3 = st.columns(3)
     col1.metric("Max Allowable OD", f"{max_coil_od:.2f} mm")
-    col2.metric("Bobbin OD", f"{bobbin_od:.2f} mm")
+    col2.metric("Winding Former OD", f"{former_od:.2f} mm")
     col3.metric("Available Radial Space", f"{available_radial_build:.3f} mm")
     
     st.markdown("---")
     
-    if available_radial_build < 0:
-        st.error("🚨 **GEOMETRY CONFLICT:** The Bobbin OD is larger than the Max Allowable Coil OD.")
+    if available_radial_build <= 0:
+        st.error("🚨 **GEOMETRY CONFLICT:** The Winding Former OD is larger than the Max Allowable Coil OD.")
     else:
         cu_build = req_turns * nominal_cu
         mylar_build = req_turns * mylar_thick
@@ -47,7 +48,7 @@ with tab1:
         
         st.subheader("Required Winding Build")
         rc1, rc2, rc3 = st.columns(3)
-        rc1.metric("Total Copper Build", f"{cu_build:.3f} mm")
+        rc1.metric("Total Nominal Copper Build", f"{cu_build:.3f} mm")
         rc2.metric("Total Mylar Build", f"{mylar_build:.3f} mm")
         rc3.metric("Total Required Build", f"{total_required_build:.3f} mm")
         
@@ -65,7 +66,8 @@ with tab1:
 # ==========================================
 with tab2:
     st.header("Shop Floor Quality Control")
-    st.write("Enter your actual mid-winding measurements below to project final dimensions.")
+    st.write("Enter actual mid-winding measurements below.")
+    st.caption("*Assumption: Mylar thickness is exact and uniform. All pitch deviation is attributed solely to uniform copper thickness tolerance.*")
     
     qc_col1, qc_col2 = st.columns(2)
     with qc_col1:
@@ -75,21 +77,55 @@ with tab2:
 
     st.markdown("---")
 
-    if current_turn > 0:
+    if current_turn > 0 and available_radial_build > 0:
         remaining_radial_space = available_radial_build - current_radial_build
         remaining_turns = req_turns - current_turn
+        
+        # Calculate real-world physics based on uniform copper tolerance
         actual_pitch = current_radial_build / current_turn
+        calculated_actual_cu = actual_pitch - mylar_thick
+        cu_deviation = calculated_actual_cu - nominal_cu
         
         projected_remaining_build = actual_pitch * remaining_turns
         projected_total_build = current_radial_build + projected_remaining_build
-        projected_final_od = bobbin_od + (2 * projected_total_build)
+        projected_final_od = former_od + (2 * projected_total_build)
 
-        st.subheader("Current Metrics & Projections")
+        # ----------------------------------------
+        # Visual Progress Bar Generation
+        # ----------------------------------------
+        st.subheader("Radial Build Progress")
+        
+        fig, ax = plt.subplots(figsize=(10, 1.5))
+        
+        # Background bar (Total Available Space)
+        ax.barh(0, available_radial_build, color='#e0e0e0', edgecolor='black', height=0.5, label='Available Space')
+        
+        # Current Build bar
+        ax.barh(0, current_radial_build, color='#4CAF50', height=0.5, label='Current Build')
+        
+        # Projected Build bar (stacked on current)
+        projected_color = '#FFC107' if projected_total_build <= available_radial_build else '#F44336'
+        ax.barh(0, projected_remaining_build, left=current_radial_build, color=projected_color, alpha=0.8, height=0.5, label='Projected Remaining')
+
+        # Add limit line
+        ax.axvline(x=available_radial_build, color='red', linestyle='--', linewidth=2, label='Max Allowable Limit')
+
+        ax.set_yticks([]) # Hide y axis
+        ax.set_xlabel('Radial Space (mm)')
+        ax.set_xlim(0, max(available_radial_build, projected_total_build) * 1.1) # Scale x-axis with 10% padding
+        ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.8), ncol=4)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        
+        st.pyplot(fig)
+        # ----------------------------------------
+
+        st.subheader("Current Metrics & Derived Tolerances")
         m1, m2, m3 = st.columns(3)
-        m1.metric("Actual Average Pitch", f"{actual_pitch:.4f} mm/turn")
+        m1.metric("Calculated Actual Cu", f"{calculated_actual_cu:.4f} mm", delta=f"{cu_deviation:+.4f} mm vs nominal", delta_color="inverse")
         m2.metric("Projected Total Build", f"{projected_total_build:.3f} mm")
         
-        # Color the Final OD metric based on whether it passes or fails
         if projected_total_build <= available_radial_build:
             m3.metric("Projected Final OD", f"{projected_final_od:.2f} mm", delta=f"Limit: {max_coil_od:.2f}", delta_color="normal")
         else:
@@ -99,34 +135,34 @@ with tab2:
 
         # Decision Logic
         if projected_total_build <= available_radial_build:
-            st.success("✅ **ON TRACK:** You are within tolerances. Continue winding with current mylar.")
+            st.success("✅ **ON TRACK:** The current copper tolerance is within limits. Continue winding with primary mylar.")
             next_check = current_turn + math.floor(remaining_turns / 2)
             if next_check < req_turns:
                 st.info(f"💡 **Recommendation:** Take the next measurement around turn **{next_check}**.")
         else:
             oversize_amount = projected_total_build - available_radial_build
-            st.warning(f"⚠️ **COIL OVERSIZED:** Projected to exceed physical space by {oversize_amount:.3f} mm. Intervention required.")
+            st.warning(f"⚠️ **COIL OVERSIZED:** Due to copper running thick, projected to exceed space by {oversize_amount:.3f} mm.")
             
             # Rescue Plan Calculation
             mylar_difference = mylar_thick - mylar_thin
-            new_expected_pitch = actual_pitch - mylar_difference
+            new_expected_pitch = calculated_actual_cu + mylar_thin 
             
             max_thick_turns_left = (remaining_radial_space - (remaining_turns * new_expected_pitch)) / mylar_difference
             max_thick_turns_left = math.floor(max_thick_turns_left)
             
             st.subheader("Rescue Plan")
             if max_thick_turns_left < 0:
-                st.error("🚨 **CRITICAL:** Switching to thin mylar immediately will NOT save the coil. Unwind and apply more tension.")
+                st.error("🚨 **CRITICAL:** Switching to thin mylar immediately will NOT save the coil. The copper is running too thick to fit the required turns in this space.")
             else:
                 switch_turn = current_turn + max_thick_turns_left
                 if switch_turn >= req_turns:
-                    st.info("The math suggests it will fit with the current mylar. Please verify your inputs.")
+                    st.info("The math suggests it will fit with the primary mylar. Please verify your measurements.")
                 else:
                     st.warning(f"🔧 **ACTION:** Change to thin mylar ({mylar_thin:.4f} mm) at **TURN {switch_turn}**.")
                     st.write(f"This allows {max_thick_turns_left} more turns with the primary mylar.")
                     
                     if max_thick_turns_left > 10:
                         measurement_turn = current_turn + math.floor(max_thick_turns_left / 2)
-                        st.info(f"💡 **Recommendation:** Verify pitch again at turn **{measurement_turn}** before making the switch.")
+                        st.info(f"💡 **Recommendation:** Verify radial build again at turn **{measurement_turn}** to confirm the copper tolerance hasn't drifted before making the switch.")
                     else:
-                        st.info("💡 **Recommendation:** Winding space is tight. Verify pitch every 5 turns.")
+                        st.info("💡 **Recommendation:** Winding space is tight. Verify radial build every 5 turns.")
