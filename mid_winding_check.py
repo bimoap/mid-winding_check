@@ -31,6 +31,14 @@ mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, va
 mylar_thin = mylar_thin_thou * 0.0254
 st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thin:.4f} mm**")
 
+# --- SIGNATURE BLOCK ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("<div style='text-align: center; color: gray; padding-top: 20px;'>"
+                    "<strong>Operator Tool</strong><br>"
+                    "<em>Bimo Adhi Prastya</em><br>"
+                    "<span style='font-size: 0.8em;'>Coil Shop Technician</span>"
+                    "</div>", unsafe_allow_html=True)
+
 # --- GLOBAL GEOMETRY CALCULATIONS ---
 max_coil_od = cooling_plate_od - 0.5
 former_od = cooling_plate_id + 0.5
