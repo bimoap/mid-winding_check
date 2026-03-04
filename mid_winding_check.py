@@ -43,19 +43,30 @@ unit_mode = st.sidebar.radio("Measurement Unit", ["Metric (mm)", "Imperial (thou
 
 if unit_mode == "Imperial (thou)":
     st.sidebar.caption("Enter values in 'thou'. The script auto-converts to mm.")
+    
     nominal_cu_thou = st.sidebar.number_input("Nominal Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
-    mylar_thick_thou = st.sidebar.number_input("Primary Mylar (thou)", min_value=0.1, value=3.0, format="%.1f")
-    mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, value=2.0, format="%.1f")
-    
     nominal_cu = nominal_cu_thou * 0.0254
-    mylar_thick = mylar_thick_thou * 0.0254
-    mylar_thin = mylar_thin_thou * 0.0254
+    st.sidebar.caption(f"↳ Metric equivalent: **{nominal_cu:.4f} mm**")
     
-    st.sidebar.caption(f"↳ Metric equivalents: Cu **{nominal_cu:.4f}** | Pri **{mylar_thick:.4f}** | Thin **{mylar_thin:.4f}**")
+    mylar_thick_thou = st.sidebar.number_input("Primary Mylar (thou)", min_value=0.1, value=3.0, format="%.1f")
+    mylar_thick = mylar_thick_thou * 0.0254
+    st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thick:.4f} mm**")
+    
+    mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, value=2.0, format="%.1f")
+    mylar_thin = mylar_thin_thou * 0.0254
+    st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thin:.4f} mm**")
+
 else:
+    st.sidebar.caption("Enter values in 'mm'. The script auto-converts to thou for reference.")
+    
     nominal_cu = st.sidebar.number_input("Nominal Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
+    st.sidebar.caption(f"↳ Imperial equivalent: **{nominal_cu / 0.0254:.1f} thou**")
+    
     mylar_thick = st.sidebar.number_input("Primary Mylar (mm)", min_value=0.001, value=0.0762, format="%.4f")
+    st.sidebar.caption(f"↳ Imperial equivalent: **{mylar_thick / 0.0254:.1f} thou**")
+    
     mylar_thin = st.sidebar.number_input("Thin Mylar (mm)", min_value=0.001, value=0.0508, format="%.4f")
+    st.sidebar.caption(f"↳ Imperial equivalent: **{mylar_thin / 0.0254:.1f} thou**")
 
 # --- SIGNATURE BLOCK ---
 st.sidebar.markdown("---")
