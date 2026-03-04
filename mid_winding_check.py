@@ -9,27 +9,53 @@ st.title("Pancake Coil Winding Calculator & QC")
 # --- SIDEBAR: GLOBAL SPECIFICATIONS ---
 st.sidebar.header("Coil Specifications")
 req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=172, step=1)
-cooling_plate_od = st.sidebar.number_input("Cooling Plate OD (mm)", min_value=1.0, value=259.0, step=1.0)
-cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=100.0, step=1.0)
+
+# 1. Dynamic Geometry Input Selection
+spec_mode = st.sidebar.selectbox(
+    "Dimension Input Method", 
+    ["Cooling Plate ID & OD", "Cooling Plate Inner & Outer Radius", "Direct Winding Window"]
+)
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("Materials (Imperial)")
-st.sidebar.caption("Enter values in 'thou'. The script will auto-convert to mm for radial build calculations.")
 
-# 1. Copper Input & Conversion
-nominal_cu_thou = st.sidebar.number_input("Nominal Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
-nominal_cu = nominal_cu_thou * 0.0254
-st.sidebar.caption(f"↳ Metric equivalent: **{nominal_cu:.4f} mm**")
+if spec_mode == "Cooling Plate ID & OD":
+    cooling_plate_od = st.sidebar.number_input("Cooling Plate OD (mm)", min_value=1.0, value=259.0, step=1.0)
+    cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=100.0, step=1.0)
+    max_coil_od = cooling_plate_od - 0.5
+    former_od = cooling_plate_id + 0.5
+    available_radial_build = (max_coil_od - former_od) / 2.0
 
-# 2. Primary Mylar Input & Conversion
-mylar_thick_thou = st.sidebar.number_input("Primary Mylar (thou)", min_value=0.1, value=3.0, format="%.1f")
-mylar_thick = mylar_thick_thou * 0.0254
-st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thick:.4f} mm**")
+elif spec_mode == "Cooling Plate Inner & Outer Radius":
+    cooling_plate_outer_rad = st.sidebar.number_input("Cooling Plate Outer Radius (mm)", min_value=1.0, value=129.5, step=0.5)
+    cooling_plate_inner_rad = st.sidebar.number_input("Cooling Plate Inner Radius (mm)", min_value=1.0, value=50.0, step=0.5)
+    max_coil_od = (cooling_plate_outer_rad * 2.0) - 0.5
+    former_od = (cooling_plate_inner_rad * 2.0) + 0.5
+    available_radial_build = (max_coil_od - former_od) / 2.0
 
-# 3. Thin Mylar Input & Conversion
-mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, value=2.0, format="%.1f")
-mylar_thin = mylar_thin_thou * 0.0254
-st.sidebar.caption(f"↳ Metric equivalent: **{mylar_thin:.4f} mm**")
+else: # Direct Winding Window
+    former_od = st.sidebar.number_input("Winding Former OD (mm)", min_value=1.0, value=100.5, step=0.5)
+    available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
+    max_coil_od = former_od + (available_radial_build * 2.0)
+
+# 2. Dynamic Material Input Selection
+st.sidebar.subheader("Materials")
+unit_mode = st.sidebar.radio("Measurement Unit", ["Metric (mm)", "Imperial (thou)"], horizontal=True)
+
+if unit_mode == "Imperial (thou)":
+    st.sidebar.caption("Enter values in 'thou'. The script auto-converts to mm.")
+    nominal_cu_thou = st.sidebar.number_input("Nominal Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
+    mylar_thick_thou = st.sidebar.number_input("Primary Mylar (thou)", min_value=0.1, value=3.0, format="%.1f")
+    mylar_thin_thou = st.sidebar.number_input("Thin Mylar (thou)", min_value=0.1, value=2.0, format="%.1f")
+    
+    nominal_cu = nominal_cu_thou * 0.0254
+    mylar_thick = mylar_thick_thou * 0.0254
+    mylar_thin = mylar_thin_thou * 0.0254
+    
+    st.sidebar.caption(f"↳ Metric equivalents: Cu **{nominal_cu:.4f}** | Pri **{mylar_thick:.4f}** | Thin **{mylar_thin:.4f}**")
+else:
+    nominal_cu = st.sidebar.number_input("Nominal Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
+    mylar_thick = st.sidebar.number_input("Primary Mylar (mm)", min_value=0.001, value=0.0762, format="%.4f")
+    mylar_thin = st.sidebar.number_input("Thin Mylar (mm)", min_value=0.001, value=0.0508, format="%.4f")
 
 # --- SIGNATURE BLOCK ---
 st.sidebar.markdown("---")
@@ -38,11 +64,6 @@ st.sidebar.markdown("<div style='text-align: center; color: gray; padding-top: 2
                     "<strong>Bimo Adhi Prastya</strong><br>"
                     "<span style='font-size: 0.8em;'>Coil Shop Technician</span>"
                     "</div>", unsafe_allow_html=True)
-
-# --- GLOBAL GEOMETRY CALCULATIONS ---
-max_coil_od = cooling_plate_od - 0.5
-former_od = cooling_plate_id + 0.5
-available_radial_build = (max_coil_od - former_od) / 2.0
 
 # --- TABS ---
 tab1, tab2 = st.tabs(["📋 Winding Planning", "🔍 Mid-Winding QC"])
