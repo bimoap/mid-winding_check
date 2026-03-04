@@ -13,29 +13,29 @@ req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=172, step
 # 1. Dynamic Geometry Input Selection
 spec_mode = st.sidebar.selectbox(
     "Dimension Input Method", 
-    ["Cooling Plate ID & OD", "Cooling Plate Inner & Outer Radius", "Direct Winding Window"]
+    ["Direct Winding Window", "Cooling Plate ID & OD", "Cooling Plate Inner & Outer Radius"]
 )
 
 st.sidebar.markdown("---")
 
-if spec_mode == "Cooling Plate ID & OD":
+if spec_mode == "Direct Winding Window":
+    former_od = st.sidebar.number_input("Winding Former OD (mm)", min_value=1.0, value=100.5, step=0.5)
+    available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
+    max_coil_od = former_od + (available_radial_build * 2.0)
+
+elif spec_mode == "Cooling Plate ID & OD":
     cooling_plate_od = st.sidebar.number_input("Cooling Plate OD (mm)", min_value=1.0, value=259.0, step=1.0)
     cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=100.0, step=1.0)
     max_coil_od = cooling_plate_od - 0.5
     former_od = cooling_plate_id + 0.5
     available_radial_build = (max_coil_od - former_od) / 2.0
 
-elif spec_mode == "Cooling Plate Inner & Outer Radius":
+else: # Cooling Plate Inner & Outer Radius
     cooling_plate_outer_rad = st.sidebar.number_input("Cooling Plate Outer Radius (mm)", min_value=1.0, value=129.5, step=0.5)
     cooling_plate_inner_rad = st.sidebar.number_input("Cooling Plate Inner Radius (mm)", min_value=1.0, value=50.0, step=0.5)
     max_coil_od = (cooling_plate_outer_rad * 2.0) - 0.5
     former_od = (cooling_plate_inner_rad * 2.0) + 0.5
     available_radial_build = (max_coil_od - former_od) / 2.0
-
-else: # Direct Winding Window
-    former_od = st.sidebar.number_input("Winding Former OD (mm)", min_value=1.0, value=100.5, step=0.5)
-    available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
-    max_coil_od = former_od + (available_radial_build * 2.0)
 
 # 2. Dynamic Material Input Selection
 st.sidebar.subheader("Materials")
