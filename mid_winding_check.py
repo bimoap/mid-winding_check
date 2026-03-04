@@ -86,9 +86,14 @@ with tab1:
     st.header("Initial Feasibility Analysis")
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Max Allowable OD", f"{max_coil_od:.2f} mm")
-    col2.metric("Winding Former OD", f"{former_od:.2f} mm")
-    col3.metric("Available Radial Space", f"{available_radial_build:.3f} mm")
+    with col1:
+        st.metric("Max Allowable OD", f"{max_coil_od:.2f} mm")
+        st.caption(f"↳ Radius: **{max_coil_od / 2.0:.2f} mm**")
+    with col2:
+        st.metric("Winding Former OD", f"{former_od:.2f} mm")
+        st.caption(f"↳ Radius: **{former_od / 2.0:.2f} mm**")
+    with col3:
+        st.metric("Available Radial Space", f"{available_radial_build:.3f} mm")
     
     st.markdown("---")
     
