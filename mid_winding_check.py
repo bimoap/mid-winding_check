@@ -77,7 +77,7 @@ st.sidebar.markdown("<div style='text-align: center; color: gray; padding-top: 2
                     "</div>", unsafe_allow_html=True)
 
 # --- TABS ---
-tab1, tab2 = st.tabs(["📋 Pre-winding check", "🔍 Mid-Winding Checker"])
+tab1, tab2 = st.tabs(["📋 Pre-winding check", "🔍 Mid-Winding Check"])
 
 # ==========================================
 # TAB 1: PRE-WINDING CHECK
@@ -120,10 +120,10 @@ with tab1:
             st.success(f"✅ **WINDING FEASIBLE:** The coil will fit. Remaining theoretical clearance is {clearance:.3f} mm.")
 
 # ==========================================
-# TAB 2: MID-WINDING CHECKER
+# TAB 2: MID-WINDING CHECK
 # ==========================================
 with tab2:
-    st.header("Shop Floor Mid-Winding Checker")
+    st.header("Mid-Winding check")
     st.write("Enter actual mid-winding measurements below.")
     st.caption("*Assumption: Mylar thickness is exact and uniform. All pitch deviation is attributed solely to uniform copper thickness tolerance.*")
     
