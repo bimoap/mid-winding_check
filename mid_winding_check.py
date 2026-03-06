@@ -77,13 +77,13 @@ st.sidebar.markdown("<div style='text-align: center; color: gray; padding-top: 2
                     "</div>", unsafe_allow_html=True)
 
 # --- TABS ---
-tab1, tab2 = st.tabs(["📋 Winding Planning", "🔍 Mid-Winding QC"])
+tab1, tab2 = st.tabs(["📋 Pre-winding check", "🔍 Mid-Winding QC"])
 
 # ==========================================
-# TAB 1: WINDING PLANNING
+# TAB 1: PRE-WINDING CHECK
 # ==========================================
 with tab1:
-    st.header("Initial Feasibility Analysis")
+    st.header("Pre-winding check")
     
     col1, col2, col3 = st.columns(3)
     with col1:
