@@ -44,7 +44,7 @@ unit_mode = st.sidebar.radio("Measurement Unit", ["Metric (mm)", "Imperial (thou
 if unit_mode == "Imperial (thou)":
     st.sidebar.caption("Enter values in 'thou'. The script auto-converts to mm.")
     
-    nominal_cu_thou = st.sidebar.number_input("Nominal Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
+    nominal_cu_thou = st.sidebar.number_input("Actual Cu Thickness (thou)", min_value=0.1, value=15.0, format="%.1f")
     nominal_cu = nominal_cu_thou * 0.0254
     st.sidebar.caption(f"↳ Metric equivalent: **{nominal_cu:.4f} mm**")
     
@@ -59,7 +59,7 @@ if unit_mode == "Imperial (thou)":
 else:
     st.sidebar.caption("Enter values in 'mm'. The script auto-converts to thou for reference.")
     
-    nominal_cu = st.sidebar.number_input("Nominal Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
+    nominal_cu = st.sidebar.number_input("Actual Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
     st.sidebar.caption(f"↳ Imperial equivalent: **{nominal_cu / 0.0254:.1f} thou**")
     
     mylar_thick = st.sidebar.number_input("Primary Mylar (mm)", min_value=0.001, value=0.0762, format="%.4f")
@@ -106,7 +106,7 @@ with tab1:
         
         st.subheader("Required Winding Build")
         rc1, rc2, rc3 = st.columns(3)
-        rc1.metric("Total Nominal Copper Build", f"{cu_build:.3f} mm")
+        rc1.metric("Total Actual Copper Build", f"{cu_build:.3f} mm")
         rc2.metric("Total Mylar Build", f"{mylar_build:.3f} mm")
         rc3.metric("Total Required Build", f"{total_required_build:.3f} mm")
         
@@ -181,7 +181,7 @@ with tab2:
 
         st.subheader("Current Metrics & Derived Tolerances")
         m1, m2, m3 = st.columns(3)
-        m1.metric("Calculated Actual Cu", f"{calculated_actual_cu:.4f} mm", delta=f"{cu_deviation:+.4f} mm vs nominal", delta_color="inverse")
+        m1.metric("Calculated Actual Cu", f"{calculated_actual_cu:.4f} mm", delta=f"{cu_deviation:+.4f} mm vs input", delta_color="inverse")
         m2.metric("Projected Total Build", f"{projected_total_build:.3f} mm")
         
         if projected_total_build <= available_radial_build:
