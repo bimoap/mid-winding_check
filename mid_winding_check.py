@@ -4,40 +4,16 @@ import matplotlib.pyplot as plt
 
 # --- PAGE SETUP ---
 st.set_page_config(page_title="Pancake Winding Checker", layout="wide")
-st.title("Pancake Winding Checker")
+st.title("Pancake Winding Checker (Radial Build Edition)")
 
 # --- SIDEBAR: GLOBAL SPECIFICATIONS ---
 st.sidebar.header("Coil Specifications")
 req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=172, step=1)
-
-# 1. Dynamic Geometry Input Selection
-spec_mode = st.sidebar.selectbox(
-    "Dimension Input Method", 
-    ["Direct Winding Window", "Cooling Plate ID & OD", "Cooling Plate Inner & Outer Radius"]
-)
+available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
 
 st.sidebar.markdown("---")
 
-if spec_mode == "Direct Winding Window":
-    former_od = st.sidebar.number_input("Winding Former OD (mm)", min_value=1.0, value=100.5, step=0.5)
-    available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
-    max_coil_od = former_od + (available_radial_build * 2.0)
-
-elif spec_mode == "Cooling Plate ID & OD":
-    cooling_plate_od = st.sidebar.number_input("Cooling Plate OD (mm)", min_value=1.0, value=259.0, step=1.0)
-    cooling_plate_id = st.sidebar.number_input("Cooling Plate ID (mm)", min_value=1.0, value=100.0, step=1.0)
-    max_coil_od = cooling_plate_od - 0.5
-    former_od = cooling_plate_id + 0.5
-    available_radial_build = (max_coil_od - former_od) / 2.0
-
-else: # Cooling Plate Inner & Outer Radius
-    cooling_plate_outer_rad = st.sidebar.number_input("Cooling Plate Outer Radius (mm)", min_value=1.0, value=129.5, step=0.5)
-    cooling_plate_inner_rad = st.sidebar.number_input("Cooling Plate Inner Radius (mm)", min_value=1.0, value=50.0, step=0.5)
-    max_coil_od = (cooling_plate_outer_rad * 2.0) - 0.5
-    former_od = (cooling_plate_inner_rad * 2.0) + 0.5
-    available_radial_build = (max_coil_od - former_od) / 2.0
-
-# 2. Dynamic Material Input Selection
+# --- Dynamic Material Input Selection ---
 st.sidebar.subheader("Materials")
 unit_mode = st.sidebar.radio("Measurement Unit", ["Metric (mm)", "Imperial (thou)"], horizontal=True)
 
@@ -85,39 +61,27 @@ tab1, tab2 = st.tabs(["📋 Pre-winding check", "🔍 Mid-Winding Check"])
 with tab1:
     st.header("Pre-winding check")
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Max Allowable OD", f"{max_coil_od:.2f} mm")
-        st.caption(f"↳ Radius: **{max_coil_od / 2.0:.2f} mm**")
-    with col2:
-        st.metric("Winding Former OD", f"{former_od:.2f} mm")
-        st.caption(f"↳ Radius: **{former_od / 2.0:.2f} mm**")
-    with col3:
-        st.metric("Available Radial Space", f"{available_radial_build:.3f} mm")
-    
+    st.metric("Available Radial Space", f"{available_radial_build:.3f} mm")
     st.markdown("---")
     
-    if available_radial_build <= 0:
-        st.error("🚨 **GEOMETRY CONFLICT:** The Winding Former OD is larger than the Max Allowable Coil OD.")
+    cu_build = req_turns * nominal_cu
+    mylar_build = req_turns * mylar_thick
+    total_required_build = cu_build + mylar_build
+    
+    st.subheader("Required Winding Build")
+    rc1, rc2, rc3 = st.columns(3)
+    rc1.metric("Total Actual Copper Build", f"{cu_build:.3f} mm")
+    rc2.metric("Total Mylar Build", f"{mylar_build:.3f} mm")
+    rc3.metric("Total Required Build", f"{total_required_build:.3f} mm")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if total_required_build > available_radial_build:
+        shortfall = total_required_build - available_radial_build
+        st.error(f"🚨 **WINDING EXCEEDS SPACE:** The coil needs {total_required_build:.3f} mm but only has {available_radial_build:.3f} mm. (Shortfall: {shortfall:.3f} mm)")
     else:
-        cu_build = req_turns * nominal_cu
-        mylar_build = req_turns * mylar_thick
-        total_required_build = cu_build + mylar_build
-        
-        st.subheader("Required Winding Build")
-        rc1, rc2, rc3 = st.columns(3)
-        rc1.metric("Total Actual Copper Build", f"{cu_build:.3f} mm")
-        rc2.metric("Total Mylar Build", f"{mylar_build:.3f} mm")
-        rc3.metric("Total Required Build", f"{total_required_build:.3f} mm")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        if total_required_build > available_radial_build:
-            shortfall = total_required_build - available_radial_build
-            st.error(f"🚨 **WINDING EXCEEDS SPACE:** The coil needs {total_required_build:.3f} mm but only has {available_radial_build:.3f} mm. (Shortfall: {shortfall:.3f} mm)")
-        else:
-            clearance = available_radial_build - total_required_build
-            st.success(f"✅ **WINDING FEASIBLE:** The coil will fit. Remaining theoretical clearance is {clearance:.3f} mm.")
+        clearance = available_radial_build - total_required_build
+        st.success(f"✅ **WINDING FEASIBLE:** The coil will fit. Remaining theoretical clearance is {clearance:.3f} mm.")
 
 # ==========================================
 # TAB 2: MID-WINDING CHECK
@@ -146,7 +110,6 @@ with tab2:
         
         projected_remaining_build = actual_pitch * remaining_turns
         projected_total_build = current_radial_build + projected_remaining_build
-        projected_final_od = former_od + (2 * projected_total_build)
 
         # ----------------------------------------
         # Visual Progress Bar Generation
@@ -171,7 +134,7 @@ with tab2:
         ax.set_yticks([]) # Hide y axis
         ax.set_xlabel('Radial Space (mm)')
         ax.set_xlim(0, max(available_radial_build, projected_total_build) * 1.1) # Scale x-axis with 10% padding
-        ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.8), ncol=4)
+        ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.8), ncol=3)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
@@ -180,14 +143,14 @@ with tab2:
         # ----------------------------------------
 
         st.subheader("Current Metrics & Derived Tolerances")
-        m1, m2, m3 = st.columns(3)
+        m1, m2 = st.columns(2)
         m1.metric("Calculated Actual Cu", f"{calculated_actual_cu:.4f} mm", delta=f"{cu_deviation:+.4f} mm vs input", delta_color="inverse")
-        m2.metric("Projected Total Build", f"{projected_total_build:.3f} mm")
         
+        # Give visual feedback on the projected total build metric
         if projected_total_build <= available_radial_build:
-            m3.metric("Projected Final OD", f"{projected_final_od:.2f} mm", delta=f"Limit: {max_coil_od:.2f}", delta_color="normal")
+            m2.metric("Projected Total Build", f"{projected_total_build:.3f} mm", delta=f"Limit: {available_radial_build:.2f}", delta_color="normal")
         else:
-            m3.metric("Projected Final OD", f"{projected_final_od:.2f} mm", delta=f"Limit: {max_coil_od:.2f}", delta_color="inverse")
+            m2.metric("Projected Total Build", f"{projected_total_build:.3f} mm", delta=f"Limit: {available_radial_build:.2f}", delta_color="inverse")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
