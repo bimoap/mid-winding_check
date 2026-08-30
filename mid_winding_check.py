@@ -8,8 +8,8 @@ st.title("Pancake Winding Checker (Radial Build Edition)")
 
 # --- SIDEBAR: GLOBAL SPECIFICATIONS ---
 st.sidebar.header("Coil Specifications")
-req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=172, step=1)
-available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=78.75, step=0.1)
+req_turns = st.sidebar.number_input("Target Turns", min_value=1, value=163, step=1)
+available_radial_build = st.sidebar.number_input("Available Radial Build Space (mm)", min_value=0.1, value=141, step=0.1)
 
 st.sidebar.markdown("---")
 
