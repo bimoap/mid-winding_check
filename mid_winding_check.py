@@ -35,7 +35,7 @@ if unit_mode == "Imperial (thou)":
 else:
     st.sidebar.caption("Enter values in 'mm'. The script auto-converts to thou for reference.")
     
-    nominal_cu = st.sidebar.number_input("Actual Cu Thickness (mm)", min_value=0.001, value=0.381, format="%.3f")
+    nominal_cu = st.sidebar.number_input("Actual Cu Thickness (mm)", min_value=0.001, value=0.7874, format="%.3f")
     st.sidebar.caption(f"↳ Imperial equivalent: **{nominal_cu / 0.0254:.1f} thou**")
     
     mylar_thick = st.sidebar.number_input("Primary Mylar (mm)", min_value=0.001, value=0.0762, format="%.4f")
