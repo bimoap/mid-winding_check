@@ -93,7 +93,7 @@ with tab2:
     
     qc_col1, qc_col2 = st.columns(2)
     with qc_col1:
-        current_turn = st.number_input("Current Turn Count", min_value=1, max_value=int(req_turns), value=45, step=1)
+        current_turn = st.number_input("Current Turn Count", min_value=1, max_value=int(req_turns), value=50, step=1)
     with qc_col2:
         current_radial_build = st.number_input("Current Radial Build Measurement (mm)", min_value=0.1, value=21.5, step=0.1, format="%.2f")
 
